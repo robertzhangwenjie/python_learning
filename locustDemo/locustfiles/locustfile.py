@@ -18,7 +18,7 @@ class MyTaskSet(TaskSet):
         self.interrupt()
 
 class MyLocust(HttpLocust):
-    host = 'http://www.ovupark.com'
+    host = 'http_demo://www.ovupark.com'
     task_set = MyTaskSet
     min_wait = 1000
     max_wait = 3000

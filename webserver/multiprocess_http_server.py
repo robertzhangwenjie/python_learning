@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 # Author : Robert
-# Create Date : 2019/4/1 8:59
-# File  :  http_server.py
+# Create Date : 2019/4/3 8:14
+# File  :  multiprocess_http_server.py
 # IDE   :  PyCharm
-
+import multiprocessing
 import socket
 import re
 
@@ -31,6 +31,7 @@ def serve_socket(client_socket):
 
     # 把接收到的数据进行解码
     recv_data = recv.decode('utf-8')
+    print(recv_data)
     recv_lines = recv_data.splitlines()
 
     # 如果有请求数据，则获取
@@ -44,7 +45,7 @@ def serve_socket(client_socket):
         # print(request_uri)
         # 如果请求的uri为/则默认返回index.htnl
         if request_uri == '/':
-            file_name = 'index.html'
+            file_name = '/index.html'
         else:
             file_name = request_uri
 
@@ -58,7 +59,7 @@ def serve_socket(client_socket):
     # 需要返回的body
     html_content = ''
     try:
-        with open('..'+file_name,'rb') as f:
+        with open('.'+file_name,'rb') as f:
             html_content = f.read()
         client_socket.send(send_data.encode('utf-8'))
         client_socket.send(html_content)
@@ -92,8 +93,16 @@ def main():
     # 为客户端服务
     while True:
         client_socket, client_addr = tcp_socket.accept()
-        # 接收客户端的请求
-        serve_socket(client_socket)
+        # 采用多进程来接收客户端的请求
+
+        t1 = multiprocessing.Process(target=serve_socket,args=(client_socket,))
+        t1.start()
+
+        # 主进程打开了该文件，当启动新的子进程时会复制全局变量和局部变量
+        # 子进程也会指向该文件，当子进程关闭client_socket时，主进程不会关闭，因此
+        # 需要在住进程中也需要关闭
+        client_socket.close()
+        # serve_socket(client_socket)
 
 if __name__ == '__main__':
     main()
